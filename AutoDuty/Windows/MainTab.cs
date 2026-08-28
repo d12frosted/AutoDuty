@@ -214,14 +214,12 @@ namespace AutoDuty.Windows
 
                         if(dutyMode == DutyMode.Variant)
                         {
-                            using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(150 * ImGuiHelpers.GlobalScale);
+                            using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(300 * ImGuiHelpers.GlobalScale);
                             ImGui.AlignTextToFramePadding();
                             ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
                             using ImRaii.DisabledDisposable __ = ImRaii.Disabled(AutoDuty.Configuration.AutoDutyModeEnum == AutoDutyMode.Playlist);
                             ImGui.SameLine();
-                            byte variantPath = Plugin.VariantPath;
-                            ImGui.InputByte($"###Path", ref variantPath, 1);
-                            Plugin.VariantPath = variantPath;
+                            DrawVariantRouteSelection(Plugin.CurrentTerritoryContent.TerritoryType);
                         }
 
                         DrawTerminationNotice();
@@ -859,6 +857,75 @@ namespace AutoDuty.Windows
                 }
             }
         }
+
+        /// <summary>
+        /// Picks which ending of a variant duty to run, showing for each route whether this
+        /// character has already found it and whether a path file can run it at all.
+        /// </summary>
+        private static void DrawVariantRouteSelection(uint territoryType)
+        {
+            IReadOnlyList<VariantHelper.VariantRoute> routes = VariantHelper.Routes(territoryType);
+            byte                                      route  = Plugin.VariantPath;
+
+            // changing the route changes which file runs it, and LoadPath keeps the file it already
+            // has unless the selection is cleared first
+            static void SelectRoute(byte value)
+            {
+                if (value == Plugin.VariantPath)
+                    return;
+
+                Plugin.VariantPath = value;
+                Plugin.currentPath = -1;
+                Plugin.LoadPath();
+            }
+
+            // no route data for this duty (an unknown or unreleased one): the plain number the path
+            // conditions read is still better than nothing
+            if (routes.Count == 0)
+            {
+                ImGui.InputByte("##VariantRoute", ref route, 1);
+                SelectRoute(route);
+                return;
+            }
+
+            if (!ImGui.BeginCombo("##VariantRoute", VariantRouteLabel(territoryType, route, routes)))
+                return;
+
+            if (ImGui.Selectable(Loc.Get("MainTab.VariantRouteFollowVote"), route == 0))
+                SelectRoute(0);
+
+            foreach (VariantHelper.VariantRoute entry in routes)
+                if (ImGui.Selectable(VariantRouteEntryLabel(territoryType, entry), route == entry.Index))
+                    SelectRoute(entry.Index);
+
+            ImGui.EndCombo();
+        }
+
+        private static string VariantRouteLabel(uint territoryType, byte route, IReadOnlyList<VariantHelper.VariantRoute> routes)
+        {
+            if (route == 0)
+                return Loc.Get("MainTab.VariantRouteFollowVote");
+
+            foreach (VariantHelper.VariantRoute entry in routes)
+                if (entry.Index == route)
+                    return VariantRouteEntryLabel(territoryType, entry);
+
+            return route.ToString();
+        }
+
+        private static string VariantRouteEntryLabel(uint territoryType, VariantHelper.VariantRoute route)
+        {
+            string state = route.Found ? Loc.Get("MainTab.VariantRouteFound") : Loc.Get("MainTab.VariantRouteMissing");
+
+            if (!VariantRouteHasPath(territoryType, route.Index))
+                state = $"{state}, {Loc.Get("MainTab.VariantRouteNoPath")}";
+
+            return $"{route.Index}. {route.NoteName} ({state})";
+        }
+
+        private static bool VariantRouteHasPath(uint territoryType, byte route) =>
+            ContentPathsManager.DictionaryPaths.TryGetValue(territoryType, out ContentPathsManager.ContentPathContainer? container) &&
+            container.Paths.ToList().Any(path => path.RunsVariantRoute(route));
 
         private static void DrawTrustMembers(Content content)
         {

@@ -43,6 +43,10 @@
     "DungeonsRemaining": "Dungeons Remaining: {0}",
     "DungeonsRemainingExplanation": "An estimate of how many more dungeons you can still run before reaching the daily limit of 100 duties.",
     "CurrentVariantPath": "Current variant path",
+    "VariantRouteFollowVote": "Follow the vote",
+    "VariantRouteFound": "found",
+    "VariantRouteMissing": "missing",
+    "VariantRouteNoPath": "no path file",
     "Modes": {
       "Looping": "Looping",
       "Playlist": "Playlist",
