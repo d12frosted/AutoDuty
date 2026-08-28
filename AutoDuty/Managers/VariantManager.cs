@@ -28,7 +28,13 @@ namespace AutoDuty.Managers
                 _taskManager.Enqueue(() => PlayerHelper.IsValid, "RegisterVariantDuty", new TaskManagerConfiguration(int.MaxValue));
                 _taskManager.EnqueueDelay(2000);
             }
-            _taskManager.Enqueue(() => Plugin.VariantPath = 0);
+            // a route the player picked has to survive queueing; only one inferred from a previous
+            // run's vote window is stale here.
+            _taskManager.Enqueue(() =>
+                                 {
+                                     if (Plugin.VariantPathInferred)
+                                         Plugin.VariantPath = 0;
+                                 }, "RegisterVariantDuty");
             _taskManager.Enqueue((Action)(() => GenericHelpers.TryGetAddonByName("VVDFinder", out addon)), "RegisterVariantDuty");
             _taskManager.Enqueue(() =>
                                  {
@@ -71,6 +77,7 @@ namespace AutoDuty.Managers
                     3 => 6,
                     _ => 1
                 };
+                Plugin.VariantPathInferred = true;
             }
 
             voteRoute.Entries[option].Select();
