@@ -90,8 +90,19 @@ public sealed class AutoDuty : IDalamudPlugin
                                                                                                      this.PlaylistCurrent.Entries[this.playlistIndex].variantPathIndex : (byte) 0,
             AutoDutyMode.Looping or _ => field
         };
-        set;
+        set
+        {
+            if (field != value)
+                this.VariantPathInferred = false;
+            field = value;
+        }
     }
+
+    /// <summary>
+    /// True while <see cref="VariantPath"/> holds a route that was read off the vote window rather
+    /// than picked by the player. Only such a value is cleared when the next duty is queued.
+    /// </summary>
+    internal bool VariantPathInferred { get; set; }
 
     internal uint currentTerritoryType = 0;
     internal int  currentPath          = -1;
