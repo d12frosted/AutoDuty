@@ -873,6 +873,14 @@ namespace AutoDuty.Windows
             ImGui.SameLine();
             DrawVariantRouteSelection(territoryType, inDungeon);
             ImGuiComponents.HelpMarker(Loc.Get("MainTab.VariantRouteHelp"));
+
+            // the same tally the duty's notebook shows, so the two can be compared at a glance
+            IReadOnlyList<VariantHelper.VariantRoute> routes = VariantHelper.Routes(territoryType);
+            if (routes.Count > 0)
+            {
+                ImGui.SameLine();
+                ImGui.Text(Loc.Get("MainTab.VariantRouteFoundCount", routes.Count(route => route.Found), routes.Count));
+            }
         }
 
         private static void DrawVariantRouteSelection(uint territoryType, bool inDungeon)
