@@ -1,3 +1,5 @@
+using AutoDuty.Data;
+using AutoDuty.Managers;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.Sheets;
@@ -74,5 +76,41 @@ namespace AutoDuty.Helpers
         /// <summary>The routes of a variant duty whose ending the player is still missing.</summary>
         internal static IEnumerable<VariantRoute> MissingRoutes(uint territoryType) =>
             Routes(territoryType).Where(route => !route.Found);
+
+        /// <summary>Is there a path file that can run this route?</summary>
+        internal static bool RouteHasPath(uint territoryType, byte route) =>
+            ContentPathsManager.DictionaryPaths.TryGetValue(territoryType, out ContentPathsManager.ContentPathContainer? container) &&
+            container.Paths.ToList().Any(path => path.RunsVariantRoute(route));
+
+        private static readonly System.Random random = new();
+
+        /// <summary>
+        /// The route the next run of this duty should take, from the way routes are being picked.
+        /// Null when the vote decides, or when no path file runs any route.
+        /// </summary>
+        internal static byte? RouteForNextRun(uint territoryType, byte lastRun) =>
+            AutoDuty.Configuration.VariantRouteModeEnum switch
+            {
+                Data.Enums.VariantRouteMode.Fixed         => AutoDuty.Configuration.VariantRouteFixed,
+                Data.Enums.VariantRouteMode.Random        => VariantRoutePlan.RandomRoute([..Routes(territoryType).Select(route => route.Index)],
+                                                                                          index => RouteHasPath(territoryType, index),
+                                                                                          random),
+                Data.Enums.VariantRouteMode.Completionist => NextRouteToRun(territoryType, lastRun),
+                _                                         => null
+            };
+
+        /// <summary>
+        /// The route to run next when working through the endings of a variant duty, going on from
+        /// <paramref name="lastRun"/>. Null when no path file runs any of its routes.
+        /// </summary>
+        internal static byte? NextRouteToRun(uint territoryType, byte lastRun)
+        {
+            IReadOnlyList<VariantRoute> routes = Routes(territoryType);
+
+            return VariantRoutePlan.NextRoute([..routes.Select(route => route.Index)],
+                                              index => routes.Any(route => route.Index == index && route.Found),
+                                              index => RouteHasPath(territoryType, index),
+                                              lastRun);
+        }
     }
 }

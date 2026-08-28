@@ -219,7 +219,7 @@ namespace AutoDuty.Windows
                             ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
                             using ImRaii.DisabledDisposable __ = ImRaii.Disabled(AutoDuty.Configuration.AutoDutyModeEnum == AutoDutyMode.Playlist);
                             ImGui.SameLine();
-                            DrawVariantRouteSelection(Plugin.CurrentTerritoryContent.TerritoryType);
+                            DrawVariantRouteSelection(Plugin.CurrentTerritoryContent.TerritoryType, true);
                         }
 
                         DrawTerminationNotice();
@@ -862,19 +862,32 @@ namespace AutoDuty.Windows
         /// Picks which ending of a variant duty to run, showing for each route whether this
         /// character has already found it and whether a path file can run it at all.
         /// </summary>
-        private static void DrawVariantRouteSelection(uint territoryType)
+        private static void DrawVariantRouteSelection(uint territoryType, bool inDungeon)
         {
             IReadOnlyList<VariantHelper.VariantRoute> routes = VariantHelper.Routes(territoryType);
-            byte                                      route  = Plugin.VariantPath;
+            VariantRouteMode                          mode   = AutoDuty.Configuration.VariantRouteModeEnum;
 
-            // changing the route changes which file runs it, and LoadPath keeps the file it already
-            // has unless the selection is cleared first
-            static void SelectRoute(byte value)
+            // inside the duty the choice also applies to the run in progress, so a route picked here
+            // takes effect without waiting for the next queue. changing the route changes which file
+            // runs it, and LoadPath keeps the file it already has unless the selection is cleared.
+            void Select(VariantRouteMode selected, byte route)
             {
-                if (value == Plugin.VariantPath)
+                AutoDuty.Configuration.VariantRouteModeEnum = selected;
+                if (selected == VariantRouteMode.Fixed)
+                    AutoDuty.Configuration.VariantRouteFixed = route;
+                Configuration.Save();
+
+                if (!inDungeon)
                     return;
 
-                Plugin.VariantPath = value;
+                byte running = selected == VariantRouteMode.Fixed ?
+                                   route :
+                                   VariantHelper.RouteForNextRun(territoryType, Plugin.VariantPath) ?? 0;
+
+                if (running == Plugin.VariantPath)
+                    return;
+
+                Plugin.VariantPath = running;
                 Plugin.currentPath = -1;
                 Plugin.LoadPath();
             }
@@ -883,49 +896,61 @@ namespace AutoDuty.Windows
             // conditions read is still better than nothing
             if (routes.Count == 0)
             {
-                ImGui.InputByte("##VariantRoute", ref route, 1);
-                SelectRoute(route);
+                byte route = AutoDuty.Configuration.VariantRouteFixed;
+                if (ImGui.InputByte("##VariantRoute", ref route, 1))
+                    Select(VariantRouteMode.Fixed, route);
                 return;
             }
 
-            if (!ImGui.BeginCombo("##VariantRoute", VariantRouteLabel(territoryType, route, routes)))
+            if (!ImGui.BeginCombo("##VariantRoute", VariantRouteLabel(territoryType, routes, inDungeon)))
                 return;
 
-            if (ImGui.Selectable(Loc.Get("MainTab.VariantRouteFollowVote"), route == 0))
-                SelectRoute(0);
+            foreach (VariantRouteMode entry in new[] { VariantRouteMode.FollowVote, VariantRouteMode.Random, VariantRouteMode.Completionist })
+                if (ImGui.Selectable(Loc.Get($"MainTab.VariantRouteModes.{entry}"), mode == entry))
+                    Select(entry, 0);
+
+            ImGui.Separator();
 
             foreach (VariantHelper.VariantRoute entry in routes)
-                if (ImGui.Selectable(VariantRouteEntryLabel(territoryType, entry), route == entry.Index))
-                    SelectRoute(entry.Index);
+                if (ImGui.Selectable(VariantRouteEntryLabel(territoryType, entry),
+                                     mode == VariantRouteMode.Fixed && AutoDuty.Configuration.VariantRouteFixed == entry.Index))
+                    Select(VariantRouteMode.Fixed, entry.Index);
 
             ImGui.EndCombo();
         }
 
-        private static string VariantRouteLabel(uint territoryType, byte route, IReadOnlyList<VariantHelper.VariantRoute> routes)
+        private static string VariantRouteLabel(uint territoryType, IReadOnlyList<VariantHelper.VariantRoute> routes, bool inDungeon)
         {
-            if (route == 0)
-                return Loc.Get("MainTab.VariantRouteFollowVote");
+            VariantRouteMode mode = AutoDuty.Configuration.VariantRouteModeEnum;
 
-            foreach (VariantHelper.VariantRoute entry in routes)
-                if (entry.Index == route)
-                    return VariantRouteEntryLabel(territoryType, entry);
+            string RouteLabel(byte route)
+            {
+                foreach (VariantHelper.VariantRoute entry in routes)
+                    if (entry.Index == route)
+                        return VariantRouteEntryLabel(territoryType, entry);
 
-            return route.ToString();
+                return route.ToString();
+            }
+
+            if (mode == VariantRouteMode.Fixed)
+                return RouteLabel(AutoDuty.Configuration.VariantRouteFixed);
+
+            string label = Loc.Get($"MainTab.VariantRouteModes.{mode}");
+
+            // inside the duty the run has a route of its own, and which one it landed on is the
+            // interesting part of a mode that picks for you
+            return inDungeon && Plugin.VariantPath > 0 ? $"{label}: {RouteLabel(Plugin.VariantPath)}" : label;
         }
 
         private static string VariantRouteEntryLabel(uint territoryType, VariantHelper.VariantRoute route)
         {
             string state = route.Found ? Loc.Get("MainTab.VariantRouteFound") : Loc.Get("MainTab.VariantRouteMissing");
 
-            if (!VariantRouteHasPath(territoryType, route.Index))
+            if (!VariantHelper.RouteHasPath(territoryType, route.Index))
                 state = $"{state}, {Loc.Get("MainTab.VariantRouteNoPath")}";
 
             return $"{route.Index}. {route.NoteName} ({state})";
         }
-
-        private static bool VariantRouteHasPath(uint territoryType, byte route) =>
-            ContentPathsManager.DictionaryPaths.TryGetValue(territoryType, out ContentPathsManager.ContentPathContainer? container) &&
-            container.Paths.ToList().Any(path => path.RunsVariantRoute(route));
 
         private static void DrawTrustMembers(Content content)
         {
