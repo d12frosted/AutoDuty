@@ -481,6 +481,19 @@ namespace AutoDuty.Windows
                                 }
 
                                 DrawPathSelection();
+
+                                // the route decides which ending a run takes, so it belongs with the
+                                // duty rather than only inside it, where it used to be the only place
+                                // it could be set
+                                if (AutoDuty.Configuration.DutyModeEnum == DutyMode.Variant && DutySelected != null)
+                                {
+                                    using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(300 * ImGuiHelpers.GlobalScale);
+                                    ImGui.AlignTextToFramePadding();
+                                    ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
+                                    ImGui.SameLine();
+                                    DrawVariantRouteSelection(DutySelected.ID, false);
+                                }
+
                                 ImGui.Separator();
 
                                 DrawSearchBar();
