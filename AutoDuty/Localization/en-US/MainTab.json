@@ -42,13 +42,14 @@
     "RequiresBossModAlt": "AutoDuty requires BossMod plugin to be installed and loaded for proper mechanic handling. Please add 3rd party repo:\nhttps://puni.sh/api/repository/veyn",
     "DungeonsRemaining": "Dungeons Remaining: {0}",
     "DungeonsRemainingExplanation": "An estimate of how many more dungeons you can still run before reaching the daily limit of 100 duties.",
-    "CurrentVariantPath": "Current variant path",
+    "CurrentVariantPath": "Variant route",
     "VariantRouteModes": {
-      "FollowVote": "Follow the vote",
+      "FollowVote": "Follow the route vote",
       "Fixed": "One route",
       "Random": "Random ending",
       "Completionist": "Work through missing endings"
     },
+    "VariantRouteHelp": "Which ending of the variant duty to run. Each ending writes one note into the duty's notebook, and the list marks the ones this character has already found.\n\nFollow the route vote: leave it to the vote window the duty shows at a fork, where the party picks which way to go, and follow whatever it lands on.\nOne route: always run the ending you picked here.\nRandom ending: any one of the endings a path file can run.\nWork through missing endings: the next ending you have not found yet, going on from the last run.\n\nAn ending marked 'no path file' has no route recorded for it, so the modes that pick for you skip it.",
     "VariantRouteFound": "found",
     "VariantRouteMissing": "missing",
     "VariantRouteNoPath": "no path file",
