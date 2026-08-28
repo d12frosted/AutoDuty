@@ -214,12 +214,8 @@ namespace AutoDuty.Windows
 
                         if(dutyMode == DutyMode.Variant)
                         {
-                            using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(300 * ImGuiHelpers.GlobalScale);
-                            ImGui.AlignTextToFramePadding();
-                            ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
                             using ImRaii.DisabledDisposable __ = ImRaii.Disabled(AutoDuty.Configuration.AutoDutyModeEnum == AutoDutyMode.Playlist);
-                            ImGui.SameLine();
-                            DrawVariantRouteSelection(Plugin.CurrentTerritoryContent.TerritoryType, true);
+                            DrawVariantRouteRow(Plugin.CurrentTerritoryContent.TerritoryType, true);
                         }
 
                         DrawTerminationNotice();
@@ -486,13 +482,7 @@ namespace AutoDuty.Windows
                                 // duty rather than only inside it, where it used to be the only place
                                 // it could be set
                                 if (AutoDuty.Configuration.DutyModeEnum == DutyMode.Variant && DutySelected != null)
-                                {
-                                    using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(300 * ImGuiHelpers.GlobalScale);
-                                    ImGui.AlignTextToFramePadding();
-                                    ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
-                                    ImGui.SameLine();
-                                    DrawVariantRouteSelection(DutySelected.ID, false);
-                                }
+                                    DrawVariantRouteRow(DutySelected.ID, false);
 
                                 ImGui.Separator();
 
@@ -875,6 +865,16 @@ namespace AutoDuty.Windows
         /// Picks which ending of a variant duty to run, showing for each route whether this
         /// character has already found it and whether a path file can run it at all.
         /// </summary>
+        private static void DrawVariantRouteRow(uint territoryType, bool inDungeon)
+        {
+            using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(300 * ImGuiHelpers.GlobalScale);
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
+            ImGui.SameLine();
+            DrawVariantRouteSelection(territoryType, inDungeon);
+            ImGuiComponents.HelpMarker(Loc.Get("MainTab.VariantRouteHelp"));
+        }
+
         private static void DrawVariantRouteSelection(uint territoryType, bool inDungeon)
         {
             IReadOnlyList<VariantHelper.VariantRoute> routes = VariantHelper.Routes(territoryType);
