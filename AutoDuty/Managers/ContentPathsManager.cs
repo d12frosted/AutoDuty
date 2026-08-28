@@ -47,6 +47,22 @@ namespace AutoDuty.Managers
 
                 DutyPath defaultPath = this.Paths[0];
 
+                // for a variant duty the route decides which ending is run, so it decides the file
+                if (this.Content.VariantContent && AutoDuty.Plugin.VariantPath > 0 && this.Paths.Count > 1)
+                {
+                    byte      route     = AutoDuty.Plugin.VariantPath;
+                    DutyPath? routePath = this.Paths.ToList().FirstOrDefault(path => path.RunsVariantRoute(route));
+
+                    if (routePath != null)
+                    {
+                        pathIndex = this.Paths.IndexOf(routePath);
+                        Svc.Log.Debug($"Selecting path {pathIndex} for variant route {route}");
+                        return routePath;
+                    }
+
+                    Svc.Log.Warning($"No path file runs variant route {route} of {this.Content.Name}, falling back");
+                }
+
                 if (job == null)
                 {
                     pathIndex = 0;
@@ -191,6 +207,21 @@ namespace AutoDuty.Managers
             public List<PathAction> Actions      => this.PathFile.Actions;
             public bool             RevivalFound { get; private set; }
             public bool             W2WFound     { get; private set; }
+
+            /// <summary>
+            /// Does this file run <paramref name="route"/>, one of the endings of a variant duty?
+            /// Most variant path files are one ending each and say so in their name; the newer ones
+            /// hold every ending in a single file and branch on the route in their conditions.
+            /// </summary>
+            public bool RunsVariantRoute(byte route) =>
+                VariantRouteNaming.TryParseRoute(this.FileName, out byte named) ?
+                    named == route :
+                    this.VariantRoutesInConditions.Contains(route);
+
+            private HashSet<byte> VariantRoutesInConditions =>
+                field ??= [..this.Actions.SelectMany(action => action.Conditions)
+                                .OfType<PathActionConditionVariantPath>()
+                                .SelectMany(condition => condition.pathIndices)];
         }
     }
 
