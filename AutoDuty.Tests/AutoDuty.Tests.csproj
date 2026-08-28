@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Compile Include="../AutoDuty/Data/VariantRouteNaming.cs" Link="AutoDuty/VariantRouteNaming.cs" />
+    <Compile Include="../AutoDuty/Data/VariantRoutePlan.cs" Link="AutoDuty/VariantRoutePlan.cs" />
   </ItemGroup>
 
   <ItemGroup>

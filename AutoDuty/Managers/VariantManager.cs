@@ -29,10 +29,18 @@ namespace AutoDuty.Managers
                 _taskManager.EnqueueDelay(2000);
             }
             // a route the player picked has to survive queueing; only one inferred from a previous
-            // run's vote window is stale here.
+            // run's vote window is stale here. working through the endings overrides both, and picks
+            // up where the last run left off.
             _taskManager.Enqueue(() =>
                                  {
-                                     if (Plugin.VariantPathInferred)
+                                     // a playlist entry names its own route, so it is left alone
+                                     if (AutoDuty.Configuration.AutoDutyModeEnum != AutoDutyMode.Playlist &&
+                                         VariantHelper.RouteForNextRun(content.TerritoryType, Plugin.VariantPath) is { } next)
+                                     {
+                                         Svc.Log.Info($"Variant route: running {next} ({AutoDuty.Configuration.VariantRouteModeEnum})");
+                                         Plugin.VariantPath = next;
+                                     }
+                                     else if (Plugin.VariantPathInferred)
                                          Plugin.VariantPath = 0;
                                  }, "RegisterVariantDuty");
             _taskManager.Enqueue((Action)(() => GenericHelpers.TryGetAddonByName("VVDFinder", out addon)), "RegisterVariantDuty");

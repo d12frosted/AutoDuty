@@ -237,6 +237,15 @@
             Playlist = 1
         }
 
+        /// <summary>How the ending to run is chosen when a variant duty is queued.</summary>
+        public enum VariantRouteMode : byte
+        {
+            FollowVote    = 0,
+            Fixed         = 1,
+            Random        = 2,
+            Completionist = 3
+        }
+
         [Flags]
         public enum DutyMode : int
         {

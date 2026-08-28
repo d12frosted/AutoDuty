@@ -560,6 +560,8 @@ public class Configuration
     //Duty Config Options
     public bool           AutoExitDuty                  = true;
     public bool           OnlyExitWhenDutyDone          = false;
+    public VariantRouteMode VariantRouteModeEnum        = VariantRouteMode.FollowVote;
+    public byte             VariantRouteFixed           = 1;
     public bool           AutoManageRotationPluginState = true;
     public RotationPlugin rotationPlugin                = RotationPlugin.All;
 
