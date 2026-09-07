@@ -208,11 +208,13 @@ do_paths() {
         return
     fi
     info "copying $count path file(s) into $PATHS_DIR"
+    # path file names carry spaces, quotes and parentheses, so read whole lines
     local name
-    for name in $(printf '%s\n' "$names"); do
+    while IFS= read -r name; do
+        [ -n "$name" ] || continue
         info "  $name"
         run cp "$REPO_ROOT/$PLUGIN/Paths/$name" "$PATHS_DIR/$name"
-    done
+    done <<< "$names"
     info ""
     info "note: the plugin re-downloads path files from erdelf/AutoDuty on startup."
     info "turn 'Update Paths on Startup' off in the config tab, or mark the files you"
