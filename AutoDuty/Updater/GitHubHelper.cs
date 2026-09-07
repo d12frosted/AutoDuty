@@ -53,8 +53,8 @@ namespace AutoDuty.Updater
                 using HttpClient client = new(handler);
                 client.Timeout = TimeSpan.FromSeconds(20);
 
-                Dictionary<string, string>? md5List = await client.GetFromJsonAsync<Dictionary<string, string>>("https://raw.githubusercontent.com/erdelf/AutoDuty/refs/heads/master/AutoDuty/Resources/md5s.json");
-                Dictionary<string, string>? delList = await client.GetFromJsonAsync<Dictionary<string, string>>("https://raw.githubusercontent.com/erdelf/AutoDuty/refs/heads/master/AutoDuty/Resources/md5s_Removed.json");
+                Dictionary<string, string>? md5List = await client.GetFromJsonAsync<Dictionary<string, string>>("https://raw.githubusercontent.com/d12frosted/AutoDuty/refs/heads/master/AutoDuty/Resources/md5s.json");
+                Dictionary<string, string>? delList = await client.GetFromJsonAsync<Dictionary<string, string>>("https://raw.githubusercontent.com/d12frosted/AutoDuty/refs/heads/master/AutoDuty/Resources/md5s_Removed.json");
                 return (md5List ?? [], delList ?? []);
             }
             catch (Exception ex)
