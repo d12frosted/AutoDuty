@@ -48,9 +48,9 @@ namespace AutoDuty.Managers
                 DutyPath defaultPath = this.Paths[0];
 
                 // for a variant duty the route decides which ending is run, so it decides the file
-                if (this.Content.VariantContent && AutoDuty.Plugin.VariantPath > 0 && this.Paths.Count > 1)
+                if (this.Content.VariantContent && this.Paths.Count > 1 &&
+                    VariantHelper.RouteForPathSelection(this.Content.TerritoryType) is var route and > 0)
                 {
-                    byte      route     = AutoDuty.Plugin.VariantPath;
                     DutyPath? routePath = this.Paths.ToList().FirstOrDefault(path => path.RunsVariantRoute(route));
 
                     if (routePath != null)

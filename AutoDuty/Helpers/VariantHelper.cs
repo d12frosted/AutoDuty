@@ -100,6 +100,24 @@ namespace AutoDuty.Helpers
             };
 
         /// <summary>
+        /// The route this duty is set to run, for picking its path file before a run is queued. A
+        /// route already in flight wins; otherwise it comes from the way routes are being chosen,
+        /// and the ways that only decide at queue time have no answer to give yet.
+        /// </summary>
+        internal static byte RouteForPathSelection(uint territoryType)
+        {
+            if (AutoDuty.Plugin.VariantPath > 0)
+                return AutoDuty.Plugin.VariantPath;
+
+            return AutoDuty.Configuration.VariantRouteModeEnum switch
+                   {
+                       Data.Enums.VariantRouteMode.Fixed         => AutoDuty.Configuration.VariantRouteFixed,
+                       Data.Enums.VariantRouteMode.Completionist => NextRouteToRun(territoryType, 0) ?? (byte)0,
+                       _                                         => (byte)0
+                   };
+        }
+
+        /// <summary>
         /// The route to run next when working through the endings of a variant duty, going on from
         /// <paramref name="lastRun"/>. Null when no path file runs any of its routes.
         /// </summary>
