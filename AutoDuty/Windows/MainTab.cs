@@ -867,6 +867,11 @@ namespace AutoDuty.Windows
         /// </summary>
         private static void DrawVariantRouteRow(uint territoryType, bool inDungeon)
         {
+            // a run in progress is somewhere in the middle of the file it started with, and the step
+            // it is on has no counterpart in the file another route would load, so the route is
+            // settled for the duration of the run. the same reason the path file itself is settled.
+            using ImRaii.DisabledDisposable disabled = ImRaii.Disabled(InDungeon && Plugin is { Stage: > 0 });
+
             using ImRaii.ItemWidthDisposable _ = ImRaii.ItemWidth(300 * ImGuiHelpers.GlobalScale);
             ImGui.AlignTextToFramePadding();
             ImGui.Text(Loc.Get("MainTab.CurrentVariantPath"));
@@ -898,7 +903,9 @@ namespace AutoDuty.Windows
                     AutoDuty.Configuration.VariantRouteFixed = route;
                 Configuration.Save();
 
-                if (!inDungeon)
+                // never while a run is under way: it would leave the run reading a step number from
+                // one route inside another route's file
+                if (!inDungeon || Plugin.Stage > 0)
                     return;
 
                 byte running = selected == VariantRouteMode.Fixed ?
