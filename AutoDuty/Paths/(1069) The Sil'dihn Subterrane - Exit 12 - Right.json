@@ -221,6 +221,20 @@
     },
     {
       "Tag": "None",
+      "Name": "RotationPlugin",
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "Arguments": [
+        "BossMod"
+      ],
+      "Conditions": [],
+      "Note": "The drakes ahead must die father, mother, brother, sister, drakeling; BossMod's module knows the order"
+    },
+    {
+      "Tag": "None",
       "Name": "Wait",
       "Position": {
         "X": 251.97,
@@ -260,6 +274,20 @@
       ],
       "Conditions": [],
       "Note": "RP"
+    },
+    {
+      "Tag": "None",
+      "Name": "RotationPlugin",
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "Arguments": [
+        "Default"
+      ],
+      "Conditions": [],
+      "Note": "Drakes done, back to the configured rotation plugin"
     },
     {
       "Tag": "None",
@@ -525,7 +553,7 @@
       }
     ],
     "Notes": [
-      "Requires BMR Rotation to solve drake puzzle"
+      "Switches to BossMod rotation for the drake puzzle, and back after"
     ]
   }
 }
