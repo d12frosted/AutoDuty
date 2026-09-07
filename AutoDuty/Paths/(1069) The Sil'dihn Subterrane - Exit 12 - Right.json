@@ -185,10 +185,10 @@
         "Z": 0.0
       },
       "Arguments": [
-        "1"
+        "0"
       ],
       "Conditions": [],
-      "Note": "Right"
+      "Note": "Raise the lift for the eastern way"
     },
     {
       "Tag": "None",
