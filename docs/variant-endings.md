@@ -61,6 +61,17 @@ still describes.
 If Aloalo shows the vote window (`VVDVoteRoute`) rather than only in-dungeon choices, the file can
 vote for its own route with a `VariantVote` action, the way the Merchant's Tale file does.
 
+## Routes that need a particular rotation plugin
+
+Sil'dihn's eastern routes (Exit 7 and Exit 12) pass a pack of drakes that only die in a fixed order:
+father, mother, brother, sister, drakeling. Out of order they keep their damage barrier, the way
+stays shut, and the run wedges at the foot of the climb behind them. BossMod's module for the pack
+sets that target order; other rotation plugins pick targets by HP and never get through.
+
+The path files handle it themselves with the `RotationPlugin` action: `BossMod` after the winch,
+`Default` once the pack is behind, which hands the choice back to the config. The switch lives for
+one run and is dropped on leaving the duty or stopping, so the configured plugin is untouched.
+
 ## Checking the numbering
 
 Route N is taken to be the Nth note of the duty's notebook series. That is confirmed for The
