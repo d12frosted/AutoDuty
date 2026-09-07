@@ -53,6 +53,7 @@ namespace AutoDuty.Managers
             ("DutySpecificCode","Adds a DutySpecificCode step to the path; after moving to the position, AutoDuty will invoke the Duty Specific Action for this TerritoryType and the step # specified", ["index"]),
             ("BossMod", "Adds a BossMod step to the path; after moving to the position, AutoDuty will turn BossMod on or off", ["on / off"]),
             ("Rotation", "Adds a Rotation step to the path; after moving to the position, AutoDuty will turn Rotation Plugin on or off", ["on / off"]),
+            ("RotationPlugin", "Adds a RotationPlugin step to the path; from here to the end of the run AutoDuty uses the rotation plugin named instead of the configured one. Some content is only solvable with one plugin's module. 'Default' hands the choice back to the config.", ["BossMod / WrathCombo / RotationSolverReborn / All / Default"]),
             ("Target", "Adds a Target step to the path; after moving to the position, AutoDuty will Target the object specified (recommended to input DataId).", ["Target what?"]),
             ("KillInRange","Kills every enemy in range", ["Range"]),
             ("AutoMoveFor", "Adds an AutoMoveFor step to the path; AutoDuty will turn on Standard Mode and Auto Move for the time specified in milliseconds (or until player is not ready)", ["how long in ms?"]),
@@ -288,6 +289,19 @@ namespace AutoDuty.Managers
                 if(rotationPlugins)
                     Plugin.SetRotationPluginSettings(true, true);
             }
+        }
+
+        public void RotationPlugin(PathAction action)
+        {
+            if (action.Arguments.Count == 0)
+                return;
+
+            Plugin.rotationPluginOverride = Enum.TryParse(action.Arguments[0], true, out Enums.RotationPlugin plugin) ? plugin : null;
+            Plugin.action                 = $"RotationPlugin: {Plugin.ActiveRotationPlugin}";
+
+            // one call moves the plugins over: the one no longer wanted is switched off by the
+            // same pass that switches the wanted one on
+            taskManager.Enqueue(() => Plugin.SetRotationPluginSettings(true, ignoreTimer: true), "RotationPlugin");
         }
 
         public void StopForCombat(PathAction action)
