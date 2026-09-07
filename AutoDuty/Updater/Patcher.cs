@@ -54,7 +54,7 @@ namespace AutoDuty.Updater
 
                     foreach (KeyValuePair<string, string> file in downloadList)
                     {
-                        bool    result = await GitHubHelper.DownloadFileAsync($"https://raw.githubusercontent.com/erdelf/AutoDuty/refs/heads/master/AutoDuty/Paths/{file.Key}", $"{Plugin.pathsDirectory.FullName}/{file.Key}");
+                        bool    result = await GitHubHelper.DownloadFileAsync($"https://raw.githubusercontent.com/d12frosted/AutoDuty/refs/heads/master/AutoDuty/Paths/{file.Key}", $"{Plugin.pathsDirectory.FullName}/{file.Key}");
                         Svc.Log.Info(result ? $"Successfully downloaded: {file.Key}" : $"Failed to download: {file.Key}");
                     }
                 }
