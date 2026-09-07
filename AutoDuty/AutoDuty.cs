@@ -104,6 +104,14 @@ public sealed class AutoDuty : IDalamudPlugin
     /// </summary>
     internal bool VariantPathInferred { get; set; }
 
+    /// <summary>
+    /// A rotation plugin a path asked for, for the rest of the run. Some content is only solvable
+    /// with one plugin's module, and the path knows that where the config cannot.
+    /// </summary>
+    internal RotationPlugin? rotationPluginOverride;
+
+    internal RotationPlugin ActiveRotationPlugin => this.rotationPluginOverride ?? Configuration.rotationPlugin;
+
     internal uint currentTerritoryType = 0;
     internal int  currentPath          = -1;
 
@@ -941,7 +949,8 @@ public sealed class AutoDuty : IDalamudPlugin
         if (t == 0)
             return;
 
-        this.currentPath = -1;
+        this.currentPath           = -1;
+        this.rotationPluginOverride = null;
 
         this.LoadPath();
 
@@ -2112,17 +2121,17 @@ public sealed class AutoDuty : IDalamudPlugin
 
         bool act = on;
 
-        bool  wrathEnabled = Configuration is { rotationPlugin: RotationPlugin.WrathCombo or RotationPlugin.All, DutyModeEnum: not DutyMode.NoviceHall };
+        bool  wrathEnabled = this.ActiveRotationPlugin is RotationPlugin.WrathCombo or RotationPlugin.All && Configuration.DutyModeEnum is not DutyMode.NoviceHall;
         bool? wrath        = EnableWrath(on && wrathEnabled);
         if (on && wrathEnabled && wrath.HasValue)
             act = !wrath.Value;
         
-        bool  rsrEnabled = Configuration is { rotationPlugin: RotationPlugin.RotationSolverReborn or RotationPlugin.All, DutyModeEnum: not DutyMode.NoviceHall };
+        bool  rsrEnabled = this.ActiveRotationPlugin is RotationPlugin.RotationSolverReborn or RotationPlugin.All && Configuration.DutyModeEnum is not DutyMode.NoviceHall;
         bool? rsr        = EnableRSR(act && on && rsrEnabled);
         if (on && rsrEnabled && rsr.HasValue) 
             act = !rsr.Value;
 
-        EnableBM(on, act && (Configuration.rotationPlugin is RotationPlugin.BossMod or RotationPlugin.All || Configuration.DutyModeEnum is DutyMode.NoviceHall));
+        EnableBM(on, act && (this.ActiveRotationPlugin is RotationPlugin.BossMod or RotationPlugin.All || Configuration.DutyModeEnum is DutyMode.NoviceHall));
     }
 
     internal static void SetBMSettings(bool defaults = false)
@@ -2341,7 +2350,8 @@ public sealed class AutoDuty : IDalamudPlugin
             this.bareModeSettingsActive                   = SettingsActive.None;
         }
 
-        this.States = PluginState.None;
+        this.States                 = PluginState.None;
+        this.rotationPluginOverride = null;
 
         if (this.taskManager != null)
         {
