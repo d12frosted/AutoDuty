@@ -42,17 +42,21 @@ Aloalo currently rotates through four of its twelve endings.
 
 ## Recording a missing Aloalo route
 
-Path files live in the plugin's config directory (`pluginConfigs/AutoDuty/paths`) and are synced from
-erdelf/AutoDuty on startup, so a new or edited file has to be protected from that sync first:
+Path files live in the plugin's config directory (`pluginConfigs/AutoDuty/paths`) and are synced on
+startup from this fork, so a corrected file reaches the game by being committed here rather than by
+turning the sync off:
 
-1. turn "Update Paths on Startup" off in the config tab, or mark the file as do-not-update once it
-   exists.
-2. enter Aloalo Island and take the branch that leads to the ending you are recording. The route
+1. enter Aloalo Island and take the branch that leads to the ending you are recording. The route
    picker in the main tab names every ending, so you can tell which number you are after.
-3. record the run in the Build tab and save it as `(1176) Aloalo Island - Path <route>.json`, where
+2. record the run in the Build tab and save it as `(1176) Aloalo Island - Path <route>.json`, where
    `<route>` is that ending's number. The name is what ties the file to the route.
-4. copy it into `AutoDuty/Paths/` in this repo and run `./scripts/install.sh --paths` to push the
-   tree's path files back into the game, so the copy under test and the copy in git stay the same.
+3. copy it into `AutoDuty/Paths/` in this repo and run `./scripts/install.sh --paths` to try it
+   without waiting for a sync.
+
+Committing a path file means refreshing `AutoDuty/Resources/md5s.json` in the same change: the sync
+compares against that list and hands nothing out until the hash there matches. Reloading the plugin
+before that does the opposite of what you want, replacing the file under test with the one the list
+still describes.
 
 If Aloalo shows the vote window (`VVDVoteRoute`) rather than only in-dungeon choices, the file can
 vote for its own route with a `VariantVote` action, the way the Merchant's Tale file does.
